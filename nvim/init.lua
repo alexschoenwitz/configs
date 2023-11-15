@@ -164,12 +164,17 @@ require('telescope').setup {
 			},
 		},
 	},
+	pickers = {
+		find_files = {
+			hidden = true,
+		}
+	},
 }
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
 
-vim.keymap.set('n', '<leader><space>', '<c-^>', { desc = 'Switch buffers' })
+vim.keymap.set('n', '<leader><space>', ':bnext<CR>', { desc = 'Switch buffers' })
 vim.keymap.set('n', '<leader>o', function()
 	local is_git = os.execute('git') == 0
 	if is_git then
