@@ -1,12 +1,6 @@
--- Set <space> as the leader key
--- See `:help mapleader`
---  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- Install package manager
---    https://github.com/folke/lazy.nvim
---    `:help lazy.nvim.txt` for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not vim.loop.fs_stat(lazypath) then
 	vim.fn.system {
@@ -27,11 +21,8 @@ require('lazy').setup({
 		-- LSP Configuration & Plugins
 		'neovim/nvim-lspconfig',
 		dependencies = {
-			-- Automatically install LSPs to stdpath for neovim
 			'williamboman/mason.nvim',
 			'williamboman/mason-lspconfig.nvim',
-
-			-- Additional lua configuration, makes nvim stuff amazing!
 			'folke/neodev.nvim',
 		},
 	},
@@ -68,6 +59,7 @@ require('lazy').setup({
 		branch = '0.1.x',
 		dependencies = {
 			'nvim-lua/plenary.nvim',
+			'airblade/vim-rooter',
 			-- requires 'make'.
 			{
 				'nvim-telescope/telescope-fzf-native.nvim',
@@ -157,17 +149,18 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 -- See `:help telescope` and `:help telescope.setup()`
 require('telescope').setup {
 	defaults = {
-		mappings = {
-			i = {
-				['<C-u>'] = false,
-				['<C-d>'] = false,
-			},
-		},
+		file_ignore_patterns = { '.git', '.pb.go', '.pb.gw.go', '.openapi.yaml' },
 	},
 	pickers = {
+
 		find_files = {
 			hidden = true,
-		}
+		},
+		live_grep = {
+			additional_args = function()
+				return { "--hidden" }
+			end
+		},
 	},
 }
 
@@ -175,14 +168,7 @@ require('telescope').setup {
 pcall(require('telescope').load_extension, 'fzf')
 
 vim.keymap.set('n', '<leader><space>', ':bnext<CR>', { desc = 'Switch buffers' })
-vim.keymap.set('n', '<leader>o', function()
-	local is_git = os.execute('git') == 0
-	if is_git then
-		require("telescope.builtin").git_files()
-	else
-		require("telescope.builtin").find_files()
-	end
-end, { desc = '[O]pen file' })
+vim.keymap.set('n', '<leader>o', function() require("telescope.builtin").find_files() end, { desc = '[O]pen file' })
 
 -- needs ripgrep [brew install ripgrep]
 vim.keymap.set('n', '<leader>f', function()
@@ -216,7 +202,7 @@ vim.keymap.set('n', 'äd', vim.diagnostic.goto_next, { desc = 'Go to next diagno
 
 -- [[ Configure LSP ]]
 -- Format on save
-vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
+vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format{async=true}]]
 
 --  This function gets run when an LSP connects to a particular buffer.
 local on_attach = function(_, bufnr)
@@ -229,7 +215,7 @@ local on_attach = function(_, bufnr)
 	end
 
 	nmap('<leader>r', vim.lsp.buf.rename, '[R]e[n]ame')
-	nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+	nmap('<leader>a', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
 	nmap('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
 	nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
@@ -237,6 +223,8 @@ local on_attach = function(_, bufnr)
 	nmap('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
 	nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
 	nmap('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+
+	nmap('<leader>g', require('telescope.builtin').git_status, '[G]it Status')
 
 	-- See `:help K` for why this keymap
 	nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
@@ -264,7 +252,8 @@ require('mason-lspconfig').setup()
 -- Language servers
 local servers = {
 	gopls = {},
-
+	golangci_lint_ls = {},
+	bufls = {},
 	lua_ls = {
 		Lua = {
 			workspace = { checkThirdParty = false },
