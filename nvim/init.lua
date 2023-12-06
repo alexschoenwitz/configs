@@ -39,6 +39,7 @@ require('lazy').setup({
 			'hrsh7th/cmp-nvim-lsp',
 		},
 	},
+	{ 'echasnovski/mini.nvim', version = false },
 
 	-- Theme
 	{ 'navarasu/onedark.nvim', opts = {} },
@@ -134,6 +135,13 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+-- Lightline config
+vim.g['lightline'] = {
+	active = {
+		left = { { 'mode', 'paste' }, { 'readonly', 'relativepath', 'modified' } }
+	}
+}
+
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
@@ -150,9 +158,9 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 require('telescope').setup {
 	defaults = {
 		file_ignore_patterns = { '.git', '.pb.go', '.pb.gw.go', '.openapi.yaml' },
+		layout_strategy = "vertical",
 	},
 	pickers = {
-
 		find_files = {
 			hidden = true,
 		},
@@ -163,6 +171,13 @@ require('telescope').setup {
 		},
 	},
 }
+
+vim.api.nvim_create_autocmd("User", {
+	pattern = "TelescopePreviewerLoaded",
+	callback = function()
+		vim.wo.wrap = false
+	end,
+})
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
