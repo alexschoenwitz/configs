@@ -3,22 +3,14 @@ vim.g.maplocalleader = ' '
 
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not vim.loop.fs_stat(lazypath) then
-	vim.fn.system {
-		'git',
-		'clone',
-		'--filter=blob:none',
-		'https://github.com/folke/lazy.nvim.git',
-		'--branch=stable', -- latest stable release
-		lazypath,
-	}
+	vim.fn.system { 'git', 'clone', '--filter=blob:none',
+		'https://github.com/folke/lazy.nvim.git', '--branch=stable', lazypath, }
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Plugins
 require('lazy').setup({
 	-- LSP Plugins
 	{
-		-- LSP Configuration & Plugins
 		'neovim/nvim-lspconfig',
 		dependencies = {
 			'williamboman/mason.nvim',
@@ -31,15 +23,11 @@ require('lazy').setup({
 		-- Autocompletion
 		'hrsh7th/nvim-cmp',
 		dependencies = {
-			-- Snippet Engine & its associated nvim-cmp source
 			'L3MON4D3/LuaSnip',
 			'saadparwaiz1/cmp_luasnip',
-
-			-- Adds LSP completion capabilities
 			'hrsh7th/cmp-nvim-lsp',
 		},
 	},
-	{ 'echasnovski/mini.nvim', version = false },
 
 	-- Theme
 	{ 'navarasu/onedark.nvim', opts = {} },
@@ -81,7 +69,7 @@ require('lazy').setup({
 	},
 	{
 		"ray-x/go.nvim",
-		dependencies = { -- optional packages
+		dependencies = {
 			"ray-x/guihua.lua",
 			"neovim/nvim-lspconfig",
 			"nvim-treesitter/nvim-treesitter",
@@ -95,7 +83,6 @@ require('lazy').setup({
 	},
 }, {})
 
--- [[ Setting options ]]
 -- Set highlight on search
 vim.o.hlsearch = false
 
@@ -125,15 +112,8 @@ vim.o.completeopt = 'menuone,noselect'
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
 
--- [[ Basic Keymaps ]]
-
--- Keymaps for better default experience
--- See `:help vim.keymap.set()`
+-- [[ Keymaps ]]
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
-
--- Remap for dealing with word wrap
-vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
-vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
 -- Lightline config
 vim.g['lightline'] = {
@@ -158,7 +138,15 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 require('telescope').setup {
 	defaults = {
 		file_ignore_patterns = { '.git', '.pb.go', '.pb.gw.go', '.openapi.yaml' },
+		path_display = {
+			shorten_path = true,
+		},
 		layout_strategy = "vertical",
+		layout = {
+			width = 1,
+			height = 1,
+			promt_position = "bottom",
+		}
 	},
 	pickers = {
 		find_files = {
@@ -186,14 +174,7 @@ vim.keymap.set('n', '<leader><space>', ':bnext<CR>', { desc = 'Switch buffers' }
 vim.keymap.set('n', '<leader>o', function() require("telescope.builtin").find_files() end, { desc = '[O]pen file' })
 
 -- needs ripgrep [brew install ripgrep]
-vim.keymap.set('n', '<leader>f', function()
-	local git_dir = vim.fn.system(string.format("git -C %s rev-parse --show-toplevel", vim.fn.expand("%:p:h")))
-	git_dir = string.gsub(git_dir, "\n", "") -- remove newline character from git_dir
-	local opts = {
-		cwd = git_dir,
-	}
-	require('telescope.builtin').live_grep(opts)
-end, { desc = '[S]earch' })
+vim.keymap.set('n', '<leader>f', function() require('telescope.builtin').live_grep() end, { desc = '[S]earch' })
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
@@ -237,21 +218,24 @@ local on_attach = function(_, bufnr)
 	nmap('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
 	nmap('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
 	nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-	nmap('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+	nmap('<leader>w', function()
+			require('telescope.builtin').lsp_dynamic_workspace_symbols {
+				show_line = true,
+				sorter = require("telescope").extensions.fzf.native_fzf_sorter({
+					fuzzy = true,
+					override_generic_sorter = true,
+					override_file_sorter = true,
+					case_mode = "smart_case",
+				})
+			}
+		end,
+		'[W]orkspace [S]ymbols')
 
 	nmap('<leader>g', require('telescope.builtin').git_status, '[G]it Status')
 
 	-- See `:help K` for why this keymap
 	nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
 	nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
-
-	-- Lesser used LSP functionality
-	nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
-	nmap('<leader>wa', vim.lsp.buf.add_workspace_folder, '[W]orkspace [A]dd Folder')
-	nmap('<leader>wr', vim.lsp.buf.remove_workspace_folder, '[W]orkspace [R]emove Folder')
-	nmap('<leader>wl', function()
-		print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-	end, '[W]orkspace [L]ist Folders')
 
 	-- Create a command `:Format` local to the LSP buffer
 	vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
@@ -303,7 +287,6 @@ mason_lspconfig.setup_handlers {
 }
 
 -- [[ Configure nvim-cmp ]]
--- See `:help cmp`
 local cmp = require 'cmp'
 local luasnip = require 'luasnip'
 require('luasnip.loaders.from_vscode').lazy_load()
