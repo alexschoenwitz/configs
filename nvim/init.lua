@@ -123,7 +123,6 @@ vim.g['lightline'] = {
 }
 
 -- [[ Highlight on yank ]]
--- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
 vim.api.nvim_create_autocmd('TextYankPost', {
 	callback = function()
@@ -139,13 +138,13 @@ require('telescope').setup {
 	defaults = {
 		file_ignore_patterns = { '.git', '.pb.go', '.pb.gw.go', '.openapi.yaml' },
 		path_display = {
-			shorten_path = true,
+			smart = true,
 		},
 		layout_strategy = "vertical",
-		layout = {
-			width = 1,
-			height = 1,
-			promt_position = "bottom",
+		layout_config = {
+			width = 0.9,
+			height = 0.9,
+			prompt_position = "bottom",
 		}
 	},
 	pickers = {
@@ -177,7 +176,6 @@ vim.keymap.set('n', '<leader>o', function() require("telescope.builtin").find_fi
 vim.keymap.set('n', '<leader>f', function() require('telescope.builtin').live_grep() end, { desc = '[S]earch' })
 
 -- [[ Configure Treesitter ]]
--- See `:help nvim-treesitter`
 -- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
 vim.defer_fn(function()
 	require('nvim-treesitter.configs').setup {
@@ -219,17 +217,16 @@ local on_attach = function(_, bufnr)
 	nmap('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
 	nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
 	nmap('<leader>w', function()
-			require('telescope.builtin').lsp_dynamic_workspace_symbols {
-				show_line = true,
-				sorter = require("telescope").extensions.fzf.native_fzf_sorter({
-					fuzzy = true,
-					override_generic_sorter = true,
-					override_file_sorter = true,
-					case_mode = "smart_case",
-				})
-			}
-		end,
-		'[W]orkspace [S]ymbols')
+		require('telescope.builtin').lsp_dynamic_workspace_symbols {
+			fname_width = 50,
+			sorter = require("telescope").extensions.fzf.native_fzf_sorter({
+				fuzzy = true,
+				override_generic_sorter = true,
+				override_file_sorter = true,
+				case_mode = "smart_case",
+			})
+		}
+	end, '[W]orkspace [S]ymbols')
 
 	nmap('<leader>g', require('telescope.builtin').git_status, '[G]it Status')
 
@@ -250,15 +247,18 @@ require('mason-lspconfig').setup()
 
 -- Language servers
 local servers = {
+	bashls = {},
+	bufls = {},
+	dockerls = {},
 	gopls = {},
 	golangci_lint_ls = {},
-	bufls = {},
 	lua_ls = {
 		Lua = {
 			workspace = { checkThirdParty = false },
 			telemetry = { enable = false },
 		},
 	},
+	yamlls = {},
 }
 
 -- Setup neovim lua configuration

@@ -1,5 +1,9 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
+SETUVAR --export STACKIT_CM_WORKSPACE:/Users/alexandreschoenwitz/Projects/customer\x2dmanagement
+SETUVAR --export TERM:xterm\x2d256color
+SETUVAR --export VAULT_ADDR:https\x3a//vault\x2dtemp\x2eeu01\x2estackit\x2ecloud\x3a4443
+SETUVAR --export VAULT_TOKEN_FILE:/Users/alexandreschoenwitz/\x2evault\x2dtoken
 SETUVAR __fish_initialized:3400
 SETUVAR fish_color_autosuggestion:555\x1ebrblack
 SETUVAR fish_color_cancel:\x2dr
@@ -29,4 +33,4 @@ SETUVAR fish_pager_color_description:B3A06D\x1eyellow\x1e\x2di
 SETUVAR fish_pager_color_prefix:normal\x1e\x2d\x2dbold\x1e\x2d\x2dunderline
 SETUVAR fish_pager_color_progress:brwhite\x1e\x2d\x2dbackground\x3dcyan
 SETUVAR fish_pager_color_selected_background:\x2dr
-SETUVAR fish_user_paths:/opt/homebrew/bin\x1e/Users/alexandreschoenwitz/\x2efzf/bin
+SETUVAR fish_user_paths:/Users/alexandreschoenwitz/bin/scm\x1e/Users/alexandreschoenwitz/bin\x1e/opt/homebrew/bin\x1e/Users/alexandreschoenwitz/\x2efzf/bin
