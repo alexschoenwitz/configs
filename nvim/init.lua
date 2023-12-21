@@ -83,57 +83,59 @@ require('lazy').setup({
 	},
 }, {})
 
--- Set highlight on search
-vim.o.hlsearch = false
-
--- Make line numbers default
-vim.wo.number = true
-
--- Enable break indent
-vim.o.breakindent = true
-
--- Save undo history
-vim.o.undofile = true
-
--- Case-insensitive searching UNLESS \C or capital in search
-vim.o.ignorecase = true
+vim.wo.relativenumber = true                    -- Make line numbers default
+vim.o.breakindent = true                        -- Enable break indent
+vim.o.undofile = true                           -- Save undo history
+vim.o.ignorecase = true                         -- Case-insensitive searching UNLESS \C or capital in search
 vim.o.smartcase = true
-
--- Keep signcolumn on by default
-vim.wo.signcolumn = 'yes'
-
--- Decrease update time
-vim.o.updatetime = 250
+vim.wo.signcolumn = 'yes'                       -- Keep signcolumn on by default
+vim.o.updatetime = 250                          -- Decrease update time
 vim.o.timeoutlen = 300
-
--- Set completeopt to have a better completion experience
-vim.o.completeopt = 'menuone,noselect'
-
--- NOTE: You should make sure your terminal supports this
-vim.o.termguicolors = true
+vim.o.completeopt = 'menuone,noinsert,noselect' -- Set completeopt to have a better completion experience
 
 -- [[ Keymaps ]]
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
+vim.keymap.set({ 'v' }, 'y', 'y`]', { silent = true })
+vim.keymap.set({ 'n', 'v' }, 'p', 'p`]', { silent = true })
+
+vim.keymap.set('n', '<leader><leader>', '<c-^>', { desc = 'Toggle between buffers' })
+vim.keymap.set('n', '<left>', ':bp<CR>', { desc = 'Next buffer' })
+vim.keymap.set('n', '<right>', ' :bn<CR>', { desc = 'Previous buffer' })
+vim.keymap.set('n', '<leader>,', ':set invlist<cr>', { desc = 'Show/hide hidden characters' })
+vim.keymap.set('n', '<leader>o', ':e <C-R>=expand("%:p:h") . "/" <CR>',
+	{ desc = 'Open new file in same directory as current file' })
+vim.keymap.set('n', '<leader>s', function() require('telescope.builtin').live_grep() end, { desc = '[S]earch' }) -- needs ripgrep [brew install ripgrep]
+vim.keymap.set('n', '<leader>w', ':w<CR>')
+
+-- Diagnostic keymaps
+vim.keymap.set('n', '<leader>d', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
+vim.keymap.set('n', 'öd', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
+vim.keymap.set('n', 'äd', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
+
+-- Stop searching
+vim.keymap.set({ 'n', 'v' }, '<C-h>', ':nohlsearch<cr>')
+
+-- Search Results centered
+vim.keymap.set('n', 'n', 'nzz')
+vim.keymap.set('n', 'N', 'Nzz')
+vim.keymap.set('n', '*', '*zz')
+vim.keymap.set('n', '#', '#zz')
+vim.keymap.set('n', 'g*', 'g*zz')
+
 
 -- Lightline config
 vim.g['lightline'] = {
 	active = {
-		left = { { 'mode', 'paste' }, { 'readonly', 'relativepath', 'modified' } }
+		left = { { 'mode', 'paste' },
+			{ 'readonly', 'relativepath', 'modified' } },
+		right = { { 'lineinfo' },
+			{ 'percent' },
+			{ 'fileencoding', 'filetype' }
+		}
 	}
 }
 
--- [[ Highlight on yank ]]
-local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
-vim.api.nvim_create_autocmd('TextYankPost', {
-	callback = function()
-		vim.highlight.on_yank()
-	end,
-	group = highlight_group,
-	pattern = '*',
-})
-
 -- [[ Configure Telescope ]]
--- See `:help telescope` and `:help telescope.setup()`
 require('telescope').setup {
 	defaults = {
 		file_ignore_patterns = { '.git', '.pb.go', '.pb.gw.go', '.openapi.yaml' },
@@ -169,11 +171,6 @@ vim.api.nvim_create_autocmd("User", {
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
 
-vim.keymap.set('n', '<leader><space>', ':bnext<CR>', { desc = 'Switch buffers' })
-vim.keymap.set('n', '<leader>o', function() require("telescope.builtin").find_files() end, { desc = '[O]pen file' })
-
--- needs ripgrep [brew install ripgrep]
-vim.keymap.set('n', '<leader>f', function() require('telescope.builtin').live_grep() end, { desc = '[S]earch' })
 
 -- [[ Configure Treesitter ]]
 -- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
@@ -188,11 +185,6 @@ vim.defer_fn(function()
 		modules = {}
 	}
 end, 0)
-
--- Diagnostic keymaps
-vim.keymap.set('n', '<leader>d', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
-vim.keymap.set('n', 'öd', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
-vim.keymap.set('n', 'äd', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 
 -- [[ Configure LSP ]]
 -- Format on save
@@ -213,10 +205,9 @@ local on_attach = function(_, bufnr)
 
 	nmap('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
 	nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-	nmap('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-	nmap('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
-	nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-	nmap('<leader>w', function()
+	nmap('gi', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
+	nmap('gD', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+	nmap('<leader>e', function()
 		require('telescope.builtin').lsp_dynamic_workspace_symbols {
 			fname_width = 50,
 			sorter = require("telescope").extensions.fzf.native_fzf_sorter({
@@ -226,7 +217,7 @@ local on_attach = function(_, bufnr)
 				case_mode = "smart_case",
 			})
 		}
-	end, '[W]orkspace [S]ymbols')
+	end)
 
 	nmap('<leader>g', require('telescope.builtin').git_status, '[G]it Status')
 
@@ -308,24 +299,6 @@ cmp.setup {
 			behavior = cmp.ConfirmBehavior.Replace,
 			select = true,
 		},
-		['<Tab>'] = cmp.mapping(function(fallback)
-			if cmp.visible() then
-				cmp.select_next_item()
-			elseif luasnip.expand_or_locally_jumpable() then
-				luasnip.expand_or_jump()
-			else
-				fallback()
-			end
-		end, { 'i', 's' }),
-		['<S-Tab>'] = cmp.mapping(function(fallback)
-			if cmp.visible() then
-				cmp.select_prev_item()
-			elseif luasnip.locally_jumpable(-1) then
-				luasnip.jump(-1)
-			else
-				fallback()
-			end
-		end, { 'i', 's' }),
 	},
 	sources = {
 		{ name = 'nvim_lsp' },
