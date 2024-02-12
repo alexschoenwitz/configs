@@ -1,3 +1,5 @@
+set fish_greeting
+
 abbr -a e nvim
 abbr -a g git
 abbr -a gah 'git stash; and git pull --rebase; and git stash pop'
