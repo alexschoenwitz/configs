@@ -96,7 +96,7 @@ window:
 scrolling:
   # Maximum number of lines in the scrollback buffer.
   # Specifying '0' will disable scrolling.
-  history: 1000
+  history: 100000
 
   # Scrolling distance multiplier.
   #multiplier: 3
@@ -150,7 +150,7 @@ font:
     #style: Bold Italic
 
   # Point size
-  #size: 11.0
+  size: 16.0
 
   # Offset is the extra space around each character. `offset.y` can be thought
   # of as modifying the line spacing, and `offset.x` as modifying the letter
@@ -426,10 +426,10 @@ colors:
 #   - (macOS) /bin/bash --login
 #   - (Linux/BSD) user login shell
 #   - (Windows) powershell
-#shell:
-#  program: /bin/bash
-#  args:
-#    - --login
+shell:
+  program: tmux
+  args:
+    - new-session
 
 # Startup directory
 #
